@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>❤️</title>
+<style>
+    body {
+        background-color: #fff0f3;
+        font-family: 'Microsoft YaHei', sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+    h1 {
+        color: #ff4f6d;
+        margin-top: 30px;
+    }
+    button {
+        background-color: #f87581;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.6em 1.5em;
+        margin: 10px;
+        font-size: 1.2em;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #ff5264;
+        transform: scale(1.05);
+    }
+    #yesBtn {
+        transform: scale(1);
+        transition: transform 0.3s ease;
+    }
+    .heart {
+        font-size: 4rem;
+        animation: heartbeat 1.5s ease-in-out infinite both;
+    }
+    @keyframes heartbeat {
+        from { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        to { transform: scale(1); }
+    }
+    .music-player {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+    }
+    #question {
+        font-size: 1.3em;
+        color: #333;
+        margin-top: 40px;
+    }
+    .success {
+        text-align: center;
+        margin-top: 100px;
+    }
+</style>
+</head>
+<body>
+
+<h1>💕</h1>
+<div id="game">
+    <div id="question"></div>
+    <div>
+        <button id="yesBtn">可以</button>
+        <button id="noBtn">不行</button>
+    </div>
+    <p id="affection">亲密度: 0/10</p>
+    <p id="hint"></p>
+</div>
+
+<div id="successPage" style="display:none;">
+    <div class="heart">❤️</div>
+    <h2>!!喜欢你!!</h2>
+    <p>( >‿< )♡°°</p>
+    <button onclick="showMenu()">继续我们的旅程</button>
+</div>
+
+<div id="menuPage" style="display:none;">
+    <h2>💕 互动空间</h2>
+    <button onclick="showTab('letter')">💌 情书生成</button>
+    <button onclick="showTab('game')">🎮 小游戏</button>
+    <button onclick="showTab('memory')">📸 记忆相册</button>
+    <button onclick="showTab('music')">🎵 音乐心情</button>
+
+    <div id="content"></div>
+</div>
+
+<!-- 音乐播放器 -->
+<div class="music-player">
+    <button onclick="toggleMusic()">🎵</button>
+</div>
+<audio id="bgm" autoplay loop>
+    <source src="bgm.mp3" type="audio/mp3">
+</audio>
+
+<script>
+const nickname = "某某某";
+let affection = 0;
+let rejectCount = 0;
+let usedQuestions = [];
+let yesScale = 1.0;
+let showMenuPage = false;
+
+const questions = [
+    `可以成为 ${nickname} 的恋人吗？`,
+    `愿意和 ${nickname} 一起看星星吗？`,
+    `可以给 ${nickname} 一个拥抱吗？`,
+    `愿意和 ${nickname} 共度余生吗？`,
+    `可以每天对 ${nickname} 说早安吗？`,
+    `愿意和 ${nickname} 分享所有的小秘密吗？`,
+    `可以牵起 ${nickname} 的手吗？`,
+    `愿意和 ${nickname} 一起养只宠物吗？`,
+    `可以陪 ${nickname} 去看海吗？`,
+    `愿意成为 ${nickname} 最特别的人吗？`,
+    `可以给 ${nickname} 写一封情书吗？`,
+    `愿意和 ${nickname} 一起慢慢变老吗？`
+];
+
+function newQuestion() {
+    if (usedQuestions.length >= questions.length) usedQuestions = [];
+    let available = questions.filter((q, i) => !usedQuestions.includes(i));
+    let qIndex = Math.floor(Math.random() * available.length);
+    let selected = questions.indexOf(available[qIndex]);
+    usedQuestions.push(selected);
+    document.getElementById("question").innerText = questions[selected];
+}
+
+newQuestion();
+
+document.getElementById("yesBtn").onclick = () => {
+    affection += 2;
+    rejectCount = 0;
+    yesScale = 1.0;
+    document.getElementById("yesBtn").style.transform = "scale(1)";
+    updateStatus();
+    if (affection >= 10) {
+        showSuccess();
+    } else {
+        newQuestion();
+    }
+};
+
+document.getElementById("noBtn").onclick = () => {
+    const replies = ["不许选这个!", "不要", "我会很伤心..", "要不再想想?", "你认真的吗..", "不行("];
+    document.getElementById("noBtn").innerText = replies[Math.floor(Math.random() * replies.length)];
+    affection = Math.max(0, affection - 1);
+    rejectCount++;
+    yesScale = Math.min(2.0, 1.0 + rejectCount * 0.2);
+    document.getElementById("yesBtn").style.transform = `scale(${yesScale})`;
+    updateStatus();
+};
+
+function updateStatus() {
+    document.getElementById("affection").innerText = `亲密度: ${affection}/10`;
+    const hint = document.getElementById("hint");
+    if (rejectCount === 1) hint.innerText = "💔 你拒绝了我几次呢...快点击同意按钮吧！";
+    else if (rejectCount === 2) hint.innerText = "💔 要不要再考虑一下？";
+    else if (rejectCount >= 3) hint.innerText = "😭 别再拒绝啦！快点击那个大大的同意按钮吧！";
+}
+
+function showSuccess() {
+    document.getElementById("game").style.display = "none";
+    document.getElementById("successPage").style.display = "block";
+    confetti(); // 动画
+}
+
+function showMenu() {
+    document.getElementById("successPage").style.display = "none";
+    document.getElementById("menuPage").style.display = "block";
+}
+
+function showTab(tab) {
+    const c = document.getElementById("content");
+    if (tab === "letter") {
+        const letters = [
+            `亲爱的${nickname}，遇见你是我一生中最美的意外。`,
+            `给最特别的${nickname}：你的笑容是我每天最期待的风景。`,
+            `致${nickname}：我想把所有的温柔都给你，因为你就是我的全世界。`,
+            `亲爱的${nickname}，和你在一起的每一刻都值得珍藏。`
+        ];
+        c.innerHTML = `<p>${letters[Math.floor(Math.random() * letters.length)]}</p>`;
+    } else if (tab === "game") {
+        c.innerHTML = `<p>🎮 情侣小游戏正在建设中...</p>`;
+    } else if (tab === "memory") {
+        c.innerHTML = `<p>📸 我们的记忆正在加载...</p>`;
+    } else if (tab === "music") {
+        c.innerHTML = `<p>🎵 你选择的歌曲会传递给${nickname}的心！</p>`;
+    }
+}
+
+// 背景音乐控制
+function toggleMusic() {
+    const audio = document.getElementById("bgm");
+    if (audio.paused) audio.play();
+    else audio.pause();
+}
+
+// 简单气球动画
+function confetti() {
+    const duration = 1 * 1000;
+    const end = Date.now() + duration;
+    (function frame() {
+        const colors = ['#ff4f6d', '#ffb6c1', '#ff69b4'];
+        const el = document.createElement('div');
+        el.style.position = 'fixed';
+        el.style.top = Math.random() * window.innerHeight + 'px';
+        el.style.left = Math.random() * window.innerWidth + 'px';
+        el.style.width = '10px';
+        el.style.height = '10px';
+        el.style.borderRadius = '50%';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.opacity = 0.8;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+        if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+}
+</script>
+
+</body>
+</html>
