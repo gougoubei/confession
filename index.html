@@ -37,10 +37,10 @@
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.2); }
     }
-    .tab {
+    .tab, .menu, .success {
         display: none;
     }
-    .active-tab {
+    .active {
         display: block;
     }
     .music-player {
@@ -53,25 +53,28 @@
 </head>
 <body>
 
-<h1 id="question">可以成为小可爱的恋人吗？</h1>
-<div>
-    <button id="yesBtn">可以</button>
-    <button id="noBtn">不许选这个!</button>
+<!-- 主互动页面 -->
+<div id="main" class="active">
+    <h1 id="question">可以成为小可爱的恋人吗？</h1>
+    <div>
+        <button id="yesBtn">可以</button>
+        <button id="noBtn">不许选这个!</button>
+    </div>
+    <p><b>亲密度:</b> <span id="affection">0</span>/10</p>
+    <p id="hint"></p>
 </div>
-<p><b>亲密度:</b> <span id="affection">0</span>/10</p>
-<p id="hint"></p>
 
 <!-- 成功页面 -->
-<div id="successPage" class="tab">
+<div id="successPage" class="success">
     <div class="heart">❤️</div>
     <h1>喜欢你!!</h1>
     <h3>( >‿< )♡°°</h3>
     <p>我们的故事才刚刚开始...</p>
-    <button onclick="showMenu()">继续我们的旅程</button>
+    <button id="continueBtn">继续我们的旅程</button>
 </div>
 
 <!-- 互动菜单 -->
-<div id="menu" class="tab">
+<div id="menu" class="menu">
     <h2>💕 专属互动空间</h2>
     <div>
         <button onclick="switchTab('letter')">💌 情书生成</button>
@@ -80,13 +83,13 @@
         <button onclick="switchTab('music')">🎵 音乐心情</button>
     </div>
 
-    <div id="letter" class="subtab">
+    <div id="letter" class="tab active">
         <h3>💌 生成专属情书</h3>
         <button onclick="generateLetter()">生成情书</button>
         <p id="letterText"></p>
     </div>
 
-    <div id="game" class="subtab" style="display:none;">
+    <div id="game" class="tab">
         <h3>🎮 情侣小游戏</h3>
         <select id="gameType">
             <option>默契测试</option>
@@ -96,14 +99,14 @@
         <p id="gameOutput"></p>
     </div>
 
-    <div id="memory" class="subtab" style="display:none;">
+    <div id="memory" class="tab">
         <h3>📸 我们的记忆</h3>
         <input id="memoryInput" placeholder="记录新的记忆" />
         <button onclick="addMemory()">保存记忆</button>
         <ul id="memoryList"></ul>
     </div>
 
-    <div id="music" class="subtab" style="display:none;">
+    <div id="music" class="tab">
         <h3>🎵 音乐心情</h3>
         <select id="songSelect">
             <option>《甜甜的》- 周杰伦</option>
@@ -126,6 +129,14 @@
 let affection = 0;
 let rejectCount = 0;
 let nickname = "小可爱";
+let musicStarted = false;
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
+const question = document.getElementById("question");
+const affectionSpan = document.getElementById("affection");
+const hint = document.getElementById("hint");
+const bgm = document.getElementById("bgm");
+
 const questions = [
     `可以成为 ${nickname} 的恋人吗？`,
     `愿意和 ${nickname} 一起看星星吗？`,
@@ -146,41 +157,42 @@ function newQuestion() {
     let index = Math.floor(Math.random() * available.length);
     let q = available[index];
     used.push(index);
-    document.getElementById("question").innerText = q;
+    question.innerText = q;
 }
 
-document.getElementById("yesBtn").onclick = () => {
+// --- 拒绝与同意逻辑 ---
+yesBtn.onclick = () => {
     affection += 2;
     rejectCount = 0;
-    document.getElementById("affection").innerText = affection;
+    affectionSpan.innerText = affection;
+    yesBtn.style.transform = "scale(1)";
     if (affection >= 10) showSuccess();
     else newQuestion();
 };
 
-document.getElementById("noBtn").onclick = () => {
+noBtn.onclick = () => {
     rejectCount++;
     affection = Math.max(0, affection - 1);
-    document.getElementById("affection").innerText = affection;
-    document.getElementById("noBtn").innerText = ["不许选这个!", "我会伤心..", "再想想?", "😭 不行"][rejectCount % 4];
-    let yesBtn = document.getElementById("yesBtn");
+    affectionSpan.innerText = affection;
+    noBtn.innerText = ["不许选这个!", "我会伤心..", "再想想?", "😭 不行"][rejectCount % 4];
     yesBtn.style.transform = `scale(${1 + rejectCount * 0.2})`;
-    document.getElementById("hint").innerText =
-        rejectCount > 3 ? "💔 快点按那个变大的按钮吧！" : "💔 再考虑一下嘛～";
+    hint.innerText = rejectCount > 3 ? "💔 快点按那个变大的按钮吧！" : "💔 再考虑一下嘛～";
 };
 
+// --- 页面切换逻辑 ---
 function showSuccess() {
-    document.body.innerHTML = document.getElementById("successPage").outerHTML;
-    document.getElementById("successPage").classList.add("active-tab");
+    document.getElementById("main").classList.remove("active");
+    document.getElementById("successPage").classList.add("active");
 }
 
-function showMenu() {
-    document.body.innerHTML = document.getElementById("menu").outerHTML;
-    document.getElementById("menu").classList.add("active-tab");
-}
+document.getElementById("continueBtn").onclick = () => {
+    document.getElementById("successPage").classList.remove("active");
+    document.getElementById("menu").classList.add("active");
+};
 
 function switchTab(id) {
-    document.querySelectorAll(".subtab").forEach(tab => tab.style.display = "none");
-    document.getElementById(id).style.display = "block";
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 }
 
 // --- 子功能实现 ---
@@ -234,9 +246,20 @@ function sendSong() {
 
 // --- 音乐控制 ---
 function toggleMusic() {
-    const audio = document.getElementById("bgm");
-    if (audio.paused) audio.play(); else audio.pause();
+    if (bgm.paused) bgm.play(); else bgm.pause();
 }
+
+// 尝试自动播放音乐（移动端第一次触摸时触发）
+document.addEventListener('DOMContentLoaded', () => {
+    const playMusic = () => {
+        if (!musicStarted) {
+            bgm.play().catch(()=>{});
+            musicStarted = true;
+        }
+    };
+    document.body.addEventListener('click', playMusic, { once: true });
+    bgm.play().catch(()=>{}); // 桌面端自动播放
+});
 
 newQuestion();
 </script>
