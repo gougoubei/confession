@@ -1,226 +1,594 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>❤️</title>
+<link rel="icon" href="data:,❤️">
 <style>
-    body {
-        background-color: #fff0f3;
-        font-family: 'Microsoft YaHei', sans-serif;
-        text-align: center;
-        margin: 0;
-        padding: 0;
-    }
-    h1 {
-        color: #ff4f6d;
-        margin-top: 30px;
-    }
-    button {
-        background-color: #f87581;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.6em 1.5em;
-        margin: 10px;
-        font-size: 1.2em;
-        transition: all 0.3s;
-        cursor: pointer;
-    }
-    button:hover {
-        background-color: #ff5264;
-        transform: scale(1.05);
-    }
-    #yesBtn {
-        transform: scale(1);
-        transition: transform 0.3s ease;
-    }
-    .heart {
-        font-size: 4rem;
-        animation: heartbeat 1.5s ease-in-out infinite both;
-    }
-    @keyframes heartbeat {
-        from { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        to { transform: scale(1); }
-    }
-    .music-player {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-    }
-    #question {
-        font-size: 1.3em;
-        color: #333;
-        margin-top: 40px;
-    }
-    .success {
-        text-align: center;
-        margin-top: 100px;
-    }
+  /* ---------- 视觉 & 布局 ---------- */
+  :root{
+    --bg: #fff4f7;
+    --accent: #f87581;
+    --accent-2: #ff5264;
+    --muted: #666;
+    --card: #ffffff;
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(180deg, var(--bg), #fff );
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    color:#222;
+  }
+  .container{
+    max-width:800px;
+    margin:16px auto;
+    padding:16px;
+  }
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  h1{ color:var(--accent); margin:0; font-size:1.4rem }
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    padding:16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    margin-top:12px;
+  }
+  #question{ font-size:1.15rem; margin:14px 0; color:#333 }
+  .controls{ display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  button, .pill{
+    background:var(--accent);
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-size:1rem;
+    cursor:pointer;
+    transition: all .2s ease;
+  }
+  button:hover{ transform:scale(1.03); background:var(--accent-2) }
+  .secondary{ background:#f1f1f1; color:#333 }
+  .small{ padding:6px 10px; font-size:.9rem; border-radius:8px }
+  .hint{ color:var(--muted); margin-top:8px; font-size:.95rem }
+  .status{ text-align:center; margin-top:10px; font-weight:600 }
+  .heart { font-size:3rem; animation:heartbeat 1.5s ease-in-out infinite both; }
+  @keyframes heartbeat { from{transform:scale(1)} 50%{transform:scale(1.08)} to{transform:scale(1)} }
+
+  /* tabs */
+  .tabs{ display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; }
+  .tab{ background:#fff; border-radius:10px; padding:8px 12px; box-shadow:0 4px 12px rgba(0,0,0,0.03); cursor:pointer; border:1px solid transparent; }
+  .tab.active{ border-color:var(--accent); color:var(--accent); }
+
+  /* content areas */
+  .area{ margin-top:12px; display:none; }
+  .area.active{ display:block; }
+
+  /* forms & lists */
+  input[type=text], textarea, select {
+    width:100%; padding:10px; border-radius:8px; border:1px solid #eee; box-sizing:border-box;
+  }
+  .row{ display:flex; gap:10px; }
+  .col{ flex:1; }
+
+  /* memory list & songs */
+  .list-item{ padding:10px; border-radius:10px; background:#fff8fb; margin-bottom:8px; border:1px solid #ffe8ee; }
+
+  /* success page */
+  #successPage{ text-align:center; padding:36px 12px; display:none; }
+
+  /* music control */
+  .music-player{ position:fixed; right:18px; bottom:18px; z-index:999; }
+
+  /* responsive tweaks */
+  @media (max-width:520px){
+    .container{ padding:12px; }
+    h1{ font-size:1.2rem; }
+    .controls{ flex-direction:column; }
+  }
 </style>
 </head>
 <body>
-
-<h1>💕</h1>
-<div id="game">
-    <div id="question"></div>
+<div class="container">
+  <header>
+    <h1>💘</h1>
     <div>
-        <button id="yesBtn">可以</button>
-        <button id="noBtn">不行</button>
+      <button id="openMenuBtn" class="small">互动中心</button>
     </div>
-    <p id="affection">亲密度: 0/10</p>
-    <p id="hint"></p>
+  </header>
+
+  <!-- 主互动卡片 -->
+  <div id="mainCard" class="card">
+    <div id="question">加载问题中...</div>
+
+    <div class="controls">
+      <button id="yesBtn">可以</button>
+      <button id="noBtn" class="secondary">不行</button>
+    </div>
+
+    <div class="status" id="affection">亲密度: 0/10</div>
+    <div class="hint" id="hint">快试试回答吧~</div>
+
+    <div class="tabs" style="margin-top:14px;">
+      <div class="tab active" data-tab="letter">💌 情书生成</div>
+      <div class="tab" data-tab="games">🎮 小游戏</div>
+      <div class="tab" data-tab="memory">📸 记忆相册</div>
+      <div class="tab" data-tab="music">🎵 音乐心情</div>
+    </div>
+
+    <!-- Tab 内容 -->
+    <div id="letter" class="area active card" style="margin-top:10px;">
+      <p>生成一封专属情书给你的 <strong id="nicknameDisplay">小可爱</strong></p>
+      <button id="generateLetterBtn" class="small">生成情书</button>
+      <div id="letterOutput" style="margin-top:10px; color:#b23a4a; font-weight:600"></div>
+    </div>
+
+    <div id="games" class="area card">
+      <h3>🎮 情侣小游戏</h3>
+      <select id="gameSelect">
+        <option value="默契">默契测试</option>
+        <option value="真心话">真心话大冒险</option>
+        <option value="情侣问答">情侣问答</option>
+      </select>
+
+      <!-- 默契测试 -->
+      <div id="matchArea" style="margin-top:10px;">
+        <div id="matchQuestion" style="font-weight:600; margin-bottom:8px"></div>
+        <input id="matchAnswer" type="text" placeholder="输入你的答案..." />
+        <div style="margin-top:8px;">
+          <button id="submitMatch" class="small">提交答案</button>
+          <button id="changeMatch" class="small secondary">换一个问题</button>
+        </div>
+        <div id="matchResult" style="margin-top:10px"></div>
+      </div>
+
+      <!-- 真心话大冒险 -->
+      <div id="dareArea" style="display:none; margin-top:10px;">
+        <div id="dareText" style="font-weight:600; margin-bottom:8px"></div>
+        <button id="drawDare" class="small">抽一个挑战</button>
+      </div>
+
+      <!-- 情侣问答（简单） -->
+      <div id="quizArea" style="display:none; margin-top:10px;">
+        <div id="quizQuestion" style="font-weight:600"></div>
+        <input id="quizAnswer" placeholder="你的回答..." />
+        <button id="submitQuiz" class="small" style="margin-top:8px;">提交</button>
+        <div id="quizResult" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div id="memory" class="area card">
+      <h3>📸 我们的记忆</h3>
+      <p class="hint">这里会保存在你的浏览器，本设备可见</p>
+      <textarea id="memText" rows="2" placeholder="记录一个美好瞬间..."></textarea>
+      <div style="margin-top:8px;">
+        <button id="saveMem" class="small">保存记忆</button>
+        <button id="clearMem" class="small secondary">清空所有记忆</button>
+      </div>
+      <div id="memList" style="margin-top:10px"></div>
+    </div>
+
+    <div id="music" class="area card">
+      <h3>🎵 音乐心情</h3>
+      <p class="hint">选一首歌发送给你的心意</p>
+      <select id="songSelect">
+        <option>《甜甜的》- 周杰伦</option>
+        <option>《就是爱你》- 陶喆</option>
+        <option>《小幸运》- 田馥甄</option>
+        <option>《告白气球》- 周杰伦</option>
+        <option>《简单爱》- 周杰伦</option>
+        <option>《爱你》- 王心凌</option>
+        <option>《浪漫手机》- 周杰伦</option>
+        <option>《最重要的决定》- 范玮琪</option>
+      </select>
+      <div style="margin-top:8px;">
+        <button id="sendSong" class="small">发送歌曲</button>
+        <button id="clearSongs" class="small secondary">清空记录</button>
+      </div>
+      <div id="songsSent" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- 成功页面 -->
+  <div id="successPage" class="card" >
+    <div id="successContent" style="display:none; text-align:center; padding:20px;">
+      <div class="heart">❤️</div>
+      <h2>!!喜欢你!!</h2>
+      <p>( >‿< )♡°°</p>
+      <p>我们的故事才刚刚开始...</p>
+      <div style="margin-top:12px;">
+        <button id="continueBtn" class="small">继续我们的旅程</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 音乐浮动按钮 -->
+  <div class="music-player">
+    <button id="toggleMusicBtn" title="播放/暂停音乐">🎵</button>
+  </div>
+
 </div>
 
-<div id="successPage" style="display:none;">
-    <div class="heart">❤️</div>
-    <h2>!!喜欢你!!</h2>
-    <p>( >‿< )♡°°</p>
-    <button onclick="showMenu()">继续我们的旅程</button>
-</div>
-
-<div id="menuPage" style="display:none;">
-    <h2>💕 互动空间</h2>
-    <button onclick="showTab('letter')">💌 情书生成</button>
-    <button onclick="showTab('game')">🎮 小游戏</button>
-    <button onclick="showTab('memory')">📸 记忆相册</button>
-    <button onclick="showTab('music')">🎵 音乐心情</button>
-
-    <div id="content"></div>
-</div>
-
-<!-- 音乐播放器 -->
-<div class="music-player">
-    <button onclick="toggleMusic()">🎵</button>
-</div>
-<audio id="bgm" autoplay loop>
-    <source src="bgm.mp3" type="audio/mp3">
+<!-- 背景音乐文件（可选） -->
+<audio id="bgm" loop>
+  <source src="bgm.mp3" type="audio/mp3">
+  <!-- 如果没有 bgm.mp3，也不会报错 -->
 </audio>
 
 <script>
-const nickname = "某某某";
-let affection = 0;
-let rejectCount = 0;
-let usedQuestions = [];
-let yesScale = 1.0;
-let showMenuPage = false;
+/* ========== 全局状态 ========== */
+const nickname = localStorage.getItem('nickname') || '某某某';
+document.getElementById('nicknameDisplay').innerText = nickname;
 
+let affection = Number(localStorage.getItem('affection') || 0);
+let rejectCount = Number(localStorage.getItem('rejectCount') || 0);
+let usedQuestions = JSON.parse(localStorage.getItem('usedQuestions') || '[]');
+let sentSongs = JSON.parse(localStorage.getItem('sentSongs') || '[]');
+let memories = JSON.parse(localStorage.getItem('memories') || '[]');
+
+/* 问题库（和你的原版一致） */
 const questions = [
-    `可以成为 ${nickname} 的恋人吗？`,
-    `愿意和 ${nickname} 一起看星星吗？`,
-    `可以给 ${nickname} 一个拥抱吗？`,
-    `愿意和 ${nickname} 共度余生吗？`,
-    `可以每天对 ${nickname} 说早安吗？`,
-    `愿意和 ${nickname} 分享所有的小秘密吗？`,
-    `可以牵起 ${nickname} 的手吗？`,
-    `愿意和 ${nickname} 一起养只宠物吗？`,
-    `可以陪 ${nickname} 去看海吗？`,
-    `愿意成为 ${nickname} 最特别的人吗？`,
-    `可以给 ${nickname} 写一封情书吗？`,
-    `愿意和 ${nickname} 一起慢慢变老吗？`
+  `可以成为 ${nickname} 的恋人吗？`,
+  `愿意和 ${nickname} 一起看星星吗？`,
+  `可以给 ${nickname} 一个拥抱吗？`,
+  `愿意和 ${nickname} 共度余生吗？`,
+  `可以每天对 ${nickname} 说早安吗？`,
+  `愿意和 ${nickname} 分享所有的小秘密吗？`,
+  `可以牵起 ${nickname} 的手吗？`,
+  `愿意和 ${nickname} 一起养只宠物吗？`,
+  `可以陪 ${nickname} 去看海吗？`,
+  `愿意成为 ${nickname} 最特别的人吗？`,
+  `可以给 ${nickname} 写一封情书吗？`,
+  `愿意和 ${nickname} 一起慢慢变老吗？`
 ];
 
-function newQuestion() {
-    if (usedQuestions.length >= questions.length) usedQuestions = [];
-    let available = questions.filter((q, i) => !usedQuestions.includes(i));
-    let qIndex = Math.floor(Math.random() * available.length);
-    let selected = questions.indexOf(available[qIndex]);
-    usedQuestions.push(selected);
-    document.getElementById("question").innerText = questions[selected];
+const rejectResponses = ["不许选这个!", "不要", "我会很伤心..", "要不再想想?", "？你认真的吗..", "不行("];
+
+const loveLetters = [
+  `亲爱的${nickname}，遇见你是我一生中最美的意外。`,
+  `给最特别的${nickname}：你的笑容是我每天最期待的风景。`,
+  `致${nickname}：我想把所有的温柔都给你，因为你就是我的全世界。`,
+  `亲爱的${nickname}，和你在一起的每一刻都值得珍藏。`
+];
+
+/* ========== DOM 元素 ========== */
+const questionEl = document.getElementById('question');
+const yesBtn = document.getElementById('yesBtn');
+const noBtn = document.getElementById('noBtn');
+const affectionEl = document.getElementById('affection');
+const hintEl = document.getElementById('hint');
+const generateLetterBtn = document.getElementById('generateLetterBtn');
+const letterOutput = document.getElementById('letterOutput');
+
+const tabs = document.querySelectorAll('.tab');
+const areas = document.querySelectorAll('.area');
+
+const openMenuBtn = document.getElementById('openMenuBtn');
+const mainCard = document.getElementById('mainCard');
+const successContent = document.getElementById('successContent');
+const successPage = document.getElementById('successPage');
+const continueBtn = document.getElementById('continueBtn');
+
+const bgm = document.getElementById('bgm');
+const toggleMusicBtn = document.getElementById('toggleMusicBtn');
+
+const matchQuestionEl = document.getElementById('matchQuestion');
+const matchAnswerEl = document.getElementById('matchAnswer');
+const submitMatchBtn = document.getElementById('submitMatch');
+const changeMatchBtn = document.getElementById('changeMatch');
+const matchResultEl = document.getElementById('matchResult');
+
+const drawDareBtn = document.getElementById('drawDare');
+const dareTextEl = document.getElementById('dareText');
+
+const quizQuestionEl = document.getElementById('quizQuestion');
+const quizAnswerEl = document.getElementById('quizAnswer');
+const submitQuizBtn = document.getElementById('submitQuiz');
+const quizResultEl = document.getElementById('quizResult');
+
+const memText = document.getElementById('memText');
+const saveMemBtn = document.getElementById('saveMem');
+const clearMemBtn = document.getElementById('clearMem');
+const memList = document.getElementById('memList');
+
+const songSelect = document.getElementById('songSelect');
+const sendSongBtn = document.getElementById('sendSong');
+const songsSentEl = document.getElementById('songsSent');
+const clearSongsBtn = document.getElementById('clearSongs');
+
+/* ========== 初始化视图 ========== */
+function persistState(){
+  localStorage.setItem('affection', affection);
+  localStorage.setItem('rejectCount', rejectCount);
+  localStorage.setItem('usedQuestions', JSON.stringify(usedQuestions));
+  localStorage.setItem('sentSongs', JSON.stringify(sentSongs));
+  localStorage.setItem('memories', JSON.stringify(memories));
+}
+function updateAffectionDisplay(){
+  affectionEl.innerText = `亲密度: ${affection}/10`;
+  // 提示文案
+  if(rejectCount === 0) hintEl.innerText = "快试试回答吧~";
+  else if(rejectCount === 1) hintEl.innerText = "💔 你拒绝了我几次呢...快点击同意按钮吧！";
+  else if(rejectCount <= 3) hintEl.innerText = "💔 你已经拒绝我好多次了，要不要再考虑一下？";
+  else hintEl.innerText = "💔 你拒绝了我这么多次，我真的好伤心...快点击那个变大的同意按钮吧！";
+}
+function chooseNewQuestion(){
+  if (usedQuestions.length >= questions.length) usedQuestions = [];
+  const available = questions.map((q,i)=>({q,i})).filter(x=>!usedQuestions.includes(x.i));
+  const pick = available[Math.floor(Math.random()*available.length)];
+  usedQuestions.push(pick.i);
+  questionEl.innerText = pick.q;
+}
+function updateSentSongsUI(){
+  songsSentEl.innerHTML = '';
+  if(sentSongs.length === 0){
+    songsSentEl.innerHTML = `<div class="hint">暂无已发送的歌曲</div>`;
+    return;
+  }
+  const list = sentSongs.slice(-5).reverse();
+  list.forEach(s=>{
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerText = `🎶 ${s}`;
+    songsSentEl.appendChild(div);
+  });
+}
+function updateMemUI(){
+  memList.innerHTML = '';
+  if(memories.length === 0){
+    memList.innerHTML = `<div class="hint">暂无记忆</div>`;
+    return;
+  }
+  const list = memories.slice().reverse();
+  list.forEach((m,idx)=>{
+    const d = document.createElement('div');
+    d.className = 'list-item';
+    d.innerHTML = `<div style="font-size:.95rem">${m}</div>
+                   <div style="margin-top:6px; text-align:right;">
+                     <button class="small secondary" data-idx="${memories.length-1-idx}" style="padding:6px 8px; font-size:.85rem;">删除</button>
+                   </div>`;
+    memList.appendChild(d);
+  });
+  // 删除功能绑定
+  memList.querySelectorAll('button[data-idx]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const idx = Number(btn.getAttribute('data-idx'));
+      memories.splice(idx,1);
+      persistState(); updateMemUI();
+    });
+  });
 }
 
-newQuestion();
+/* 初始化 */
+updateAffectionDisplay();
+if(!usedQuestions.length) chooseNewQuestion();
+else questionEl.innerText = questions[usedQuestions[usedQuestions.length-1]];
+updateSentSongsUI();
+updateMemUI();
 
-document.getElementById("yesBtn").onclick = () => {
-    affection += 2;
-    rejectCount = 0;
-    yesScale = 1.0;
-    document.getElementById("yesBtn").style.transform = "scale(1)";
-    updateStatus();
-    if (affection >= 10) {
-        showSuccess();
-    } else {
-        newQuestion();
-    }
-};
+/* ========== 互动按钮逻辑 ========== */
+yesBtn.addEventListener('click', ()=>{
+  affection = Math.min(10, affection + 2);
+  rejectCount = 0;
+  // 恢复按钮大小
+  yesBtn.style.transform = 'scale(1)';
+  persistState();
+  updateAffectionDisplay();
+  chooseNewQuestion();
+  // 达成条件
+  if(affection >= 10){
+    showSuccess();
+  }
+});
+noBtn.addEventListener('click', ()=>{
+  const r = rejectResponses[Math.floor(Math.random()*rejectResponses.length)];
+  noBtn.innerText = r;
+  affection = Math.max(0, affection - 1);
+  rejectCount++;
+  const scale = Math.min(2.0, 1.0 + rejectCount * 0.2);
+  yesBtn.style.transform = `scale(${scale})`;
+  persistState();
+  updateAffectionDisplay();
+  if(rejectCount >= 3){
+    // 提示
+    hintEl.innerText += " （提示：同意按钮已经变大了）";
+  }
+});
 
-document.getElementById("noBtn").onclick = () => {
-    const replies = ["不许选这个!", "不要", "我会很伤心..", "要不再想想?", "你认真的吗..", "不行("];
-    document.getElementById("noBtn").innerText = replies[Math.floor(Math.random() * replies.length)];
-    affection = Math.max(0, affection - 1);
-    rejectCount++;
-    yesScale = Math.min(2.0, 1.0 + rejectCount * 0.2);
-    document.getElementById("yesBtn").style.transform = `scale(${yesScale})`;
-    updateStatus();
-};
+/* ========== 成功页 ========== */
+function showSuccess(){
+  mainCard.style.display = 'none';
+  successContent.style.display = 'block';
+  // 气球动画（简单 confetti）
+  burstConfetti();
+  // 显示成功区域
+  window.scrollTo({top:0,behavior:'smooth'});
+  // 如果需要可以重置一些状态
+}
+continueBtn.addEventListener('click', ()=>{
+  // 显示主面板并打开互动中心（默认是 tabs）
+  mainCard.style.display = 'block';
+  successContent.style.display = 'none';
+  // 自动跳转到互动区
+});
 
-function updateStatus() {
-    document.getElementById("affection").innerText = `亲密度: ${affection}/10`;
-    const hint = document.getElementById("hint");
-    if (rejectCount === 1) hint.innerText = "💔 你拒绝了我几次呢...快点击同意按钮吧！";
-    else if (rejectCount === 2) hint.innerText = "💔 要不要再考虑一下？";
-    else if (rejectCount >= 3) hint.innerText = "😭 别再拒绝啦！快点击那个大大的同意按钮吧！";
+/* ========== Tabs 切换 ========== */
+tabs.forEach(t=>{
+  t.addEventListener('click', ()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.getAttribute('data-tab');
+    areas.forEach(a=>{
+      if(a.id === tab) a.classList.add('active');
+      else a.classList.remove('active');
+    });
+  });
+});
+
+/* ========== 情书生成 ========== */
+generateLetterBtn.addEventListener('click', ()=>{
+  const txt = loveLetters[Math.floor(Math.random()*loveLetters.length)];
+  letterOutput.innerText = txt;
+});
+
+/* ========== 小游戏 ========== */
+/* 题库 */
+const matchQuestions = [
+  `你觉得${nickname}最喜欢什么颜色？`,
+  `${nickname}的生日是什么时候？`,
+  `${nickname}最爱的食物是什么？`,
+  `${nickname}最想去哪里旅行？`,
+  `${nickname}最喜欢的电影类型是什么？`
+];
+const dares = [
+  "给对方发一条甜蜜的语音消息",
+  "分享一个从未告诉过别人的小秘密",
+  "约定一个浪漫的约会计划",
+  "为对方唱一首歌",
+  "写下一句最想对对方说的话"
+];
+const quizQs = [
+  {q:`${nickname}第一次见面的地点是？`, a:''},
+  {q:`${nickname}最怕的事情是什么？`, a:''}
+];
+
+function pickMatch(){
+  const q = matchQuestions[Math.floor(Math.random()*matchQuestions.length)];
+  matchQuestionEl.innerText = q;
+}
+pickMatch();
+
+submitMatchBtn.addEventListener('click', ()=>{
+  const ans = matchAnswerEl.value.trim();
+  if(!ans){ matchResultEl.innerText = "请输入答案后提交"; return; }
+  matchResultEl.innerText = `你的答案：${ans}（仅作娱乐，记得和TA比对哦）`;
+  matchAnswerEl.value = '';
+});
+changeMatchBtn.addEventListener('click', ()=>{
+  pickMatch();
+  matchResultEl.innerText = '';
+});
+
+/* 真心话大冒险 */
+drawDareBtn.addEventListener('click', ()=>{
+  const d = dares[Math.floor(Math.random()*dares.length)];
+  dareTextEl.innerText = d;
+});
+
+/* 情侣问答 */
+submitQuizBtn.addEventListener('click', ()=>{
+  const ans = quizAnswerEl.value.trim();
+  if(!ans){ quizResultEl.innerText = "请输入答案后提交"; return; }
+  quizResultEl.innerText = `你的回答已记录：${ans}（可作为默契参考）`;
+  quizAnswerEl.value = '';
+});
+
+/* game select 切换区域显示 */
+const gameSelect = document.getElementById('gameSelect');
+function updateGameArea(){
+  const v = gameSelect.value;
+  document.getElementById('matchArea').style.display = v === '默契' ? 'block' : 'none';
+  document.getElementById('dareArea').style.display = v === '真心话' ? 'block' : 'none';
+  document.getElementById('quizArea').style.display = v === '情侣问答' ? 'block' : 'none';
+}
+gameSelect.addEventListener('change', updateGameArea);
+updateGameArea();
+
+/* ========== 记忆相册（localStorage） ========== */
+saveMemBtn.addEventListener('click', ()=>{
+  const t = memText.value.trim();
+  if(!t) return alert('请输入要保存的记忆');
+  const stamp = new Date().toLocaleString();
+  memories.push(`${stamp} - ${t}`);
+  memText.value = '';
+  persistState();
+  updateMemUI();
+});
+clearMemBtn.addEventListener('click', ()=>{
+  if(!confirm('确认清空所有记忆吗？此操作不可恢复（仅保存在本地）')) return;
+  memories = [];
+  persistState();
+  updateMemUI();
+});
+
+/* ========== 音乐心情 ========== */
+sendSongBtn.addEventListener('click', ()=>{
+  const song = songSelect.value;
+  const stamp = new Date().toLocaleString();
+  sentSongs.push(`${stamp} - ${song}`);
+  persistState();
+  updateSentSongsUI();
+  // 发送动画（临时），并且气球
+  burstConfetti(20);
+});
+clearSongsBtn.addEventListener('click', ()=>{
+  if(!confirm('确认清空已发送歌曲记录？')) return;
+  sentSongs = [];
+  persistState();
+  updateSentSongsUI();
+});
+
+/* ========== music control ========== */
+toggleMusicBtn.addEventListener('click', ()=>{
+  if(bgm.paused){
+    bgm.play().catch(()=>console.log('自动播放被阻止'));
+  }else bgm.pause();
+});
+// 尝试自动播放（现代浏览器可能阻止自动播放，用户交互后可播放）
+window.addEventListener('load', ()=>{
+  bgm.volume = 0.6;
+  bgm.play().catch(()=>{ /* ignore autoplay block */ });
+});
+
+/* ========== 辅助动画：confetti 气球 ========== */
+function burstConfetti(count=60){
+  const colors = ['#ff4f6d','#ffb6c1','#ff69b4','#ffd6e0'];
+  for(let i=0;i<count;i++){
+    setTimeout(()=>{
+      const el = document.createElement('div');
+      el.style.position='fixed';
+      el.style.zIndex=9999;
+      el.style.left = (Math.random()*100) + 'vw';
+      el.style.top = '-10vh';
+      el.style.width = (8+Math.random()*12)+'px';
+      el.style.height = (8+Math.random()*12)+'px';
+      el.style.borderRadius='50%';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.opacity = Math.random()*0.9+0.1;
+      el.style.pointerEvents = 'none';
+      document.body.appendChild(el);
+      const endX = (Math.random()-0.5)*80;
+      const duration = 2000 + Math.random()*1200;
+      el.animate([
+        { transform: `translate(0,0) rotate(0deg)` , opacity:1},
+        { transform: `translate(${endX}px, ${window.innerHeight + 100}px) rotate(${Math.random()*360}deg)`, opacity:0.2}
+      ], { duration: duration, easing: 'cubic-bezier(.2,.6,.2,1)' });
+      setTimeout(()=>el.remove(), duration+200);
+    }, Math.random()*400);
+  }
 }
 
-function showSuccess() {
-    document.getElementById("game").style.display = "none";
-    document.getElementById("successPage").style.display = "block";
-    confetti(); // 动画
-}
+/* ========== 打开/关闭互动中心（浮动） ========== */
+openMenuBtn.addEventListener('click', ()=>{
+  window.scrollTo({top:0, behavior:'smooth'});
+  // 简单切换显示（主卡片一直展示）
+});
 
-function showMenu() {
-    document.getElementById("successPage").style.display = "none";
-    document.getElementById("menuPage").style.display = "block";
-}
+/* ========== 页面卸载时保存状态 ========== */
+window.addEventListener('beforeunload', persistState);
 
-function showTab(tab) {
-    const c = document.getElementById("content");
-    if (tab === "letter") {
-        const letters = [
-            `亲爱的${nickname}，遇见你是我一生中最美的意外。`,
-            `给最特别的${nickname}：你的笑容是我每天最期待的风景。`,
-            `致${nickname}：我想把所有的温柔都给你，因为你就是我的全世界。`,
-            `亲爱的${nickname}，和你在一起的每一刻都值得珍藏。`
-        ];
-        c.innerHTML = `<p>${letters[Math.floor(Math.random() * letters.length)]}</p>`;
-    } else if (tab === "game") {
-        c.innerHTML = `<p>🎮 情侣小游戏正在建设中...</p>`;
-    } else if (tab === "memory") {
-        c.innerHTML = `<p>📸 我们的记忆正在加载...</p>`;
-    } else if (tab === "music") {
-        c.innerHTML = `<p>🎵 你选择的歌曲会传递给${nickname}的心！</p>`;
-    }
-}
+/* ========== 恢复 UI 状态初始显示 ========== */
+updateAffectionDisplay();
+updateSentSongsUI();
+updateMemUI();
 
-// 背景音乐控制
-function toggleMusic() {
-    const audio = document.getElementById("bgm");
-    if (audio.paused) audio.play();
-    else audio.pause();
-}
-
-// 简单气球动画
-function confetti() {
-    const duration = 1 * 1000;
-    const end = Date.now() + duration;
-    (function frame() {
-        const colors = ['#ff4f6d', '#ffb6c1', '#ff69b4'];
-        const el = document.createElement('div');
-        el.style.position = 'fixed';
-        el.style.top = Math.random() * window.innerHeight + 'px';
-        el.style.left = Math.random() * window.innerWidth + 'px';
-        el.style.width = '10px';
-        el.style.height = '10px';
-        el.style.borderRadius = '50%';
-        el.style.background = colors[Math.floor(Math.random() * colors.length)];
-        el.style.opacity = 0.8;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
-        if (Date.now() < end) requestAnimationFrame(frame);
-    })();
-}
 </script>
-
 </body>
 </html>
